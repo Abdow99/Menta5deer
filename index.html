@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تخدير الطوارئ</title>
+    <style>
+        :root {
+            --primary: #c0392b; /* Urgent Medical Red */
+            --accent: #27ae60;
+            --bg: #f8f9fa;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+        }
+
+        .container {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            background: #f1f2f6;
+            color: #57606f;
+            font-weight: bold;
+        }
+
+        .main-trigger {
+            width: 100%;
+            padding: 25px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #962d22;
+            transition: all 0.1s;
+            margin-bottom: 25px;
+        }
+
+        .main-trigger:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #962d22;
+        }
+
+        .input-group { 
+            margin-bottom: 20px; 
+            text-align: right;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        
+        label { display: block; font-size: 14px; color: #7f8c8d; margin-bottom: 8px; }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 10px;
+            text-align: right;
+        }
+
+        .contact-card {
+            background: #fff;
+            border: 1px solid #edf2f7;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .contact-info b { display: block; color: #2d3436; font-size: 18px; }
+        .contact-info span { font-family: monospace; color: #636e72; font-size: 15px; }
+
+        .actions { display: flex; gap: 8px; }
+        .btn-sm {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .btn-copy { background: #dfe6e9; color: #2d3436; }
+        .btn-call { background: #2ecc71; color: white; }
+
+        .empty-msg { color: #b2bec3; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="timeStatus" class="status-badge">جاري التحديث...</div>
+
+    <button class="main-trigger" onclick="processRequest()">مين تخدير؟</button>
+    
+    <div class="input-group">
+        <label>استعلام عن يوم آخر:</label>
+        <select id="daySelect" onchange="processRequest()">
+            <option value="today">الوقت الحالي</option>
+            <option value="السبت">السبت</option>
+            <option value="الأحد">الأحد</option>
+            <option value="الاثنين">الاثنين</option>
+            <option value="الثلاثاء">الثلاثاء</option>
+            <option value="الأربعاء">الأربعاء</option>
+            <option value="الخميس">الخميس</option>
+            <option value="الجمعة">الجمعة</option>
+        </select>
+    </div>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    const directory = {
+        "محمود عزت": "01024772356", "حسام": "01287993774", "محمد فؤاد": "01020274239",
+        "أحمد طارق": "01022176649", "عبدالغني": "01123676274", "محمد هراس": "01021681919",
+        "سارة فايد": "01147341375", "سلمى": "01286443285", "عمر الحيت": "01092832062",
+        "جهاد": "01010799643", "أحمد الفار": "01019202321", "أحمد عيسى": "01026512389",
+        "آية جمال": "01159716507", "نهاد": "01022187178", "روان": "01091051651"
+    };
+
+    const emergencyMornings = {
+        "السبت": ["أحمد الفار"], "الأحد": ["سلمى"], "الاثنين": ["محمود عزت"],
+        "الثلاثاء": ["آية جمال"], "الأربعاء": ["جهاد"], "الخميس": ["عمر الحيت"], "الجمعة": []
+    };
+
+    const onCallGroups = {
+        "السبت": ["نهاد", "أحمد الفار", "أحمد عيسى", "روان", "آية جمال"],
+        "الثلاثاء": ["نهاد", "أحمد الفار", "أحمد عيسى", "روان", "آية جمال"],
+        "الأحد": ["محمد هراس", "عمر الحيت", "جهاد", "سلمى", "سارة فايد"],
+        "الأربعاء": ["محمد هراس", "عمر الحيت", "جهاد", "سلمى", "سارة فايد"],
+        "الاثنين": ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"],
+        "الخميس": ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"],
+        "الجمعة": []
+    };
+
+    function updateTimeDisplay() {
+        const now = new Date();
+        const hr = now.getHours() + (now.getMinutes()/60);
+        const status = (hr >= 8 && hr < 13.5) ? "☀️ فترة العمل الصباحية" : "🌑 فترة النبطشية المسائية";
+        document.getElementById('timeStatus').innerText = status;
+    }
+    
+    setInterval(updateTimeDisplay, 60000); // Update badge every minute
+    updateTimeDisplay();
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        // Temporary feedback on button
+        event.target.innerText = "تم!";
+        setTimeout(() => { event.target.innerText = "نسخ"; }, 1500);
+    }
+
+    function processRequest() {
+        const selectedDay = document.getElementById('daySelect').value;
+        const resultDiv = document.getElementById('result');
+        
+        const daysArr = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+        const now = new Date();
+        let targetDay = selectedDay === "today" ? daysArr[now.getDay()] : selectedDay;
+        
+        const hr = now.getHours() + (now.getMinutes()/60);
+        const isMorning = hr >= 8 && hr < 13.5;
+
+        let names = [];
+        if (selectedDay !== "today") {
+            // Logic for specific day request (Step 6)
+            names = [...(emergencyMornings[targetDay] || []), ...(onCallGroups[targetDay] || [])];
+        } else {
+            // Current time logic (Step 3 & 4)
+            names = isMorning ? (emergencyMornings[targetDay] || []) : (onCallGroups[targetDay] || []);
+        }
+
+        renderList(names);
+    }
+
+    function renderList(names) {
+        const resultDiv = document.getElementById('result');
+        if (names.length === 0) {
+            resultDiv.innerHTML = `<div class="empty-msg">لا يوجد جدول مسجل لهذا الوقت</div>`;
+        } else {
+            let html = "";
+            // Remove duplicates if any (e.g. if a name is in both tables for Step 6)
+            const uniqueNames = [...new Set(names)];
+            uniqueNames.forEach(n => {
+                const phone = directory[n] || "";
+                html += `
+                    <div class="contact-card">
+                        <div class="contact-info">
+                            <b>${n}</b>
+                            <span>${phone}</span>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-sm btn-copy" onclick="copyToClipboard('${phone}')">نسخ</button>
+                            ${phone ? `<a href="tel:${phone}" class="btn-sm btn-call">اتصال</a>` : ''}
+                        </div>
+                    </div>`;
+            });
+            resultDiv.innerHTML = html;
+        }
+    }
+</script>
+
+</body>
+</html>
