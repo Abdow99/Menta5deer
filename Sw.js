@@ -1,5 +1,10 @@
 const CACHE_NAME = 'anaesthesia-v2';
-const assets = ['./', './index.html', './manifest.json'];
+const assets = [
+    './', 
+    './index.html', 
+    './manifest.json', 
+    './icon.png' // Add this line here
+];
 
 self.addEventListener('install', e => {
     e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(assets)));
