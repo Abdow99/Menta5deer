@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#c0392b">
-    
-    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Menta5deer">
     <link rel="apple-touch-icon" href="icon.png">
 
-    <title>تخدير الطوارئ</title>
+    <title>Menta5deer</title>
     <style>
         :root {
             --primary: #c0392b; 
@@ -159,15 +158,16 @@
             <option value="الثلاثاء">الثلاثاء</option>
             <option value="الأربعاء">الأربعاء</option>
             <option value="الخميس">الخميس</option>
-            <option value="الجمعة">الجمعة</option>
+            <option value="الجمعة">الجمعة (الحالية)</option>
+            <option value="nextFriday">الجمعة الجاية</option>
         </select>
     </div>
     <div id="result"></div>
 </div>
 
 <div class="footer-note">
-    This app was made by Dr. Abdow, for any reports or suggestions 
-    <a href="https://wa.me/201550086024" target="_blank">contact me</a>
+    Made by Dr. Abdow • Menta5deer v1.0 <br>
+    <a href="https://wa.me/201550086024" target="_blank">Send Feedback via WhatsApp</a>
 </div>
 
 <script>
@@ -181,7 +181,7 @@
 
     const emergencyMornings = {
         "السبت": ["أحمد الفار"], "الأحد": ["سلمى"], "الاثنين": ["محمود عزت"],
-        "الثلاثاء": ["آية جمال"], "الأربعاء": ["جهاد"], "الخميس": ["عمر الحيت"], "الجمعة": []
+        "الثلاثاء": ["آية جمال"], "الأربعاء": ["جهاد"], "الخميس": ["عمر الحيت"]
     };
 
     const onCallGroups = {
@@ -190,14 +190,40 @@
         "الأحد": ["محمد هراس", "عمر الحيت", "جهاد", "سلمى", "سارة فايد"],
         "الأربعاء": ["محمد هراس", "عمر الحيت", "جهاد", "سلمى", "سارة فايد"],
         "الاثنين": ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"],
-        "الخميس": ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"],
-        "الجمعة": []
+        "الخميس": ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"]
     };
+
+    // Rotation logic for Fridays
+    function getFridayGroup(date) {
+        // Reference Friday: Jan 23, 2026 was Saturday/Tuesday group (index 2)
+        // Jan 30, 2026 (tomorrow) is Sunday/Wednesday group (index 0)
+        const refFriday = new Date(2026, 0, 30); 
+        const cycle = ["الأحد", "الاثنين", "السبت"]; // Represents the groups
+        
+        const diffInMs = date - refFriday;
+        const diffInWeeks = Math.floor(diffInMs / (7 * 24 * 60 * 60 * 1000));
+        
+        // Ensure index is positive for modulo
+        let index = diffInWeeks % 3;
+        if (index < 0) index += 3;
+        
+        return onCallGroups[cycle[index]];
+    }
 
     function updateTimeDisplay() {
         const now = new Date();
-        const hr = now.getHours() + (now.getMinutes()/60);
-        const status = (hr >= 8 && hr < 13.5) ? "☀️ فترة العمل الصباحية" : "🌑 فترة النبطشية المسائية";
+        const hr = now.getHours();
+        const day = now.getDay(); // 5 is Friday, 6 is Saturday
+
+        let status = "";
+        // If it's Saturday before 8 AM, it's still Friday's on-call
+        if (day === 6 && hr < 8) {
+            status = "🌑 نبطشية الجمعة (مستمرة)";
+        } else if (hr >= 8 && hr < 13.5 && day !== 5) {
+            status = "☀️ فترة العمل الصباحية";
+        } else {
+            status = "🌑 فترة النبطشية المسائية";
+        }
         document.getElementById('timeStatus').innerText = status;
     }
     
@@ -215,20 +241,53 @@
         const selectedDay = document.getElementById('daySelect').value;
         const daysArr = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
         const now = new Date();
-        let targetDay = selectedDay === "today" ? daysArr[now.getDay()] : selectedDay;
-        const hr = now.getHours() + (now.getMinutes()/60);
-        const isMorning = hr >= 8 && hr < 13.5;
+        const hr = now.getHours();
+        
+        let targetDate = new Date();
+        let targetDayName = selectedDay === "today" ? daysArr[now.getDay()] : selectedDay;
 
-        let names = (selectedDay !== "today") 
-            ? [...(emergencyMornings[targetDay] || []), ...(onCallGroups[targetDay] || [])]
-            : (isMorning ? (emergencyMornings[targetDay] || []) : (onCallGroups[targetDay] || []));
+        // Logic for "Today"
+        if (selectedDay === "today") {
+            // Check if we are in the Saturday 00:00 - 08:00 window (Friday continues)
+            if (now.getDay() === 6 && hr < 8) {
+                const prevDate = new Date();
+                prevDate.setDate(now.getDate() - 1);
+                renderList(getFridayGroup(prevDate));
+                return;
+            }
+            
+            if (now.getDay() === 5) { // It's Friday
+                renderList(getFridayGroup(now));
+                return;
+            }
 
-        renderList(names);
+            const isMorning = hr >= 8 && hr < 13.5;
+            renderList(isMorning ? (emergencyMornings[targetDayName] || []) : (onCallGroups[targetDayName] || []));
+            return;
+        }
+
+        // Logic for specific future Friday
+        if (selectedDay === "nextFriday") {
+            const nextFri = new Date();
+            nextFri.setDate(now.getDate() + (5 + 7 - now.getDay()) % 7);
+            if (now.getDay() === 5) nextFri.setDate(nextFri.getDate() + 7);
+            renderList(getFridayGroup(nextFri));
+            return;
+        }
+
+        // Logic for other specific days
+        if (selectedDay === "الجمعة") {
+            let thisFri = new Date();
+            thisFri.setDate(now.getDate() + (5 - now.getDay()));
+            renderList(getFridayGroup(thisFri));
+        } else {
+            renderList([...(emergencyMornings[selectedDay] || []), ...(onCallGroups[selectedDay] || [])]);
+        }
     }
 
     function renderList(names) {
         const resultDiv = document.getElementById('result');
-        if (names.length === 0) {
+        if (!names || names.length === 0) {
             resultDiv.innerHTML = `<div class="empty-msg">لا يوجد جدول مسجل لهذا الوقت</div>`;
         } else {
             let html = "";
@@ -251,16 +310,11 @@
         }
     }
 
-    // Register Service Worker for Offline Use
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(() => {
-                // Fallback for direct blob if sw.js doesn't exist
-            });
+            navigator.serviceWorker.register('sw.js').catch(err => console.log("SW error", err));
         });
     }
 </script>
 </body>
 </html>
-
-
