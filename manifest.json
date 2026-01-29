@@ -1,9 +1,9 @@
 {
-  "short_name": "تخدير",
-  "name": "تخدير الطوارئ",
+  "short_name": "Menta5deer",
+  "name": "Menta5deer - مين تخدير",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/822/822143.png",
+      "src": "icon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
