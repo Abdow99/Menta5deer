@@ -154,12 +154,11 @@
             <option value="today">الوقت الحالي</option>
             <option value="السبت">السبت</option>
             <option value="الأحد">الأحد</option>
-            <option value="الاثنين">الاثنين</option>
-            <option value="الثلاثاء">الثلاثاء</option>
-            <option value="الأربعاء">الأربعاء</option>
+            <option value="الاثنين">الاتنين</option>
+            <option value="الثلاثاء">التلات</option>
+            <option value="الأربعاء">الأربع</option>
             <option value="الخميس">الخميس</option>
-            <option value="الجمعة">الجمعة (الحالية)</option>
-            <option value="nextFriday">الجمعة الجاية</option>
+            <option value="الجمعة">الجمعة</option>
         </select>
     </div>
     <div id="result"></div>
@@ -193,30 +192,21 @@
         "الخميس": ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"]
     };
 
-    // Rotation logic for Fridays
     function getFridayGroup(date) {
-        // Reference Friday: Jan 23, 2026 was Saturday/Tuesday group (index 2)
-        // Jan 30, 2026 (tomorrow) is Sunday/Wednesday group (index 0)
         const refFriday = new Date(2026, 0, 30); 
-        const cycle = ["الأحد", "الاثنين", "السبت"]; // Represents the groups
-        
+        const cycle = ["الأحد", "الاثنين", "السبت"]; 
         const diffInMs = date - refFriday;
         const diffInWeeks = Math.floor(diffInMs / (7 * 24 * 60 * 60 * 1000));
-        
-        // Ensure index is positive for modulo
         let index = diffInWeeks % 3;
         if (index < 0) index += 3;
-        
         return onCallGroups[cycle[index]];
     }
 
     function updateTimeDisplay() {
         const now = new Date();
         const hr = now.getHours();
-        const day = now.getDay(); // 5 is Friday, 6 is Saturday
-
+        const day = now.getDay(); 
         let status = "";
-        // If it's Saturday before 8 AM, it's still Friday's on-call
         if (day === 6 && hr < 8) {
             status = "🌑 نبطشية الجمعة (مستمرة)";
         } else if (hr >= 8 && hr < 13.5 && day !== 5) {
@@ -243,45 +233,29 @@
         const now = new Date();
         const hr = now.getHours();
         
-        let targetDate = new Date();
-        let targetDayName = selectedDay === "today" ? daysArr[now.getDay()] : selectedDay;
-
-        // Logic for "Today"
+        let targetDayName = selectedDay;
         if (selectedDay === "today") {
-            // Check if we are in the Saturday 00:00 - 08:00 window (Friday continues)
+            targetDayName = daysArr[now.getDay()];
             if (now.getDay() === 6 && hr < 8) {
-                const prevDate = new Date();
-                prevDate.setDate(now.getDate() - 1);
-                renderList(getFridayGroup(prevDate));
-                return;
+                const prevDate = new Date(); prevDate.setDate(now.getDate() - 1);
+                renderList(getFridayGroup(prevDate)); return;
             }
-            
-            if (now.getDay() === 5) { // It's Friday
-                renderList(getFridayGroup(now));
-                return;
-            }
-
+            if (now.getDay() === 5) { renderList(getFridayGroup(now)); return; }
             const isMorning = hr >= 8 && hr < 13.5;
             renderList(isMorning ? (emergencyMornings[targetDayName] || []) : (onCallGroups[targetDayName] || []));
             return;
         }
 
-        // Logic for specific future Friday
-        if (selectedDay === "nextFriday") {
-            const nextFri = new Date();
-            nextFri.setDate(now.getDate() + (5 + 7 - now.getDay()) % 7);
-            if (now.getDay() === 5) nextFri.setDate(nextFri.getDate() + 7);
-            renderList(getFridayGroup(nextFri));
-            return;
-        }
-
-        // Logic for other specific days
         if (selectedDay === "الجمعة") {
-            let thisFri = new Date();
-            thisFri.setDate(now.getDate() + (5 - now.getDay()));
-            renderList(getFridayGroup(thisFri));
+            let nextFri = new Date();
+            nextFri.setDate(now.getDate() + (5 + 7 - now.getDay()) % 7);
+            if (now.getDay() === 5) nextFri = now; 
+            renderList(getFridayGroup(nextFri));
         } else {
-            renderList([...(emergencyMornings[selectedDay] || []), ...(onCallGroups[selectedDay] || [])]);
+            // Mapping UI names to internal data keys
+            const internalKeyMap = { "السبت": "السبت", "الأحد": "الأحد", "الاثنين": "الاثنين", "الثلاثاء": "الثلاثاء", "الأربعاء": "الأربعاء", "الخميس": "الخميس" };
+            const key = internalKeyMap[selectedDay] || selectedDay;
+            renderList([...(emergencyMornings[key] || []), ...(onCallGroups[key] || [])]);
         }
     }
 
@@ -317,4 +291,4 @@
     }
 </script>
 </body>
-</html> 
+</html>
