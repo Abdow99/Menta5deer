@@ -3,19 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#c0392b">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="تخدير">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/822/822143.png">
+
     <title>تخدير الطوارئ</title>
     <style>
         :root {
-            --primary: #c0392b; /* Urgent Medical Red */
+            --primary: #c0392b; 
             --accent: #27ae60;
             --bg: #f8f9fa;
             --white: #ffffff;
+            --whatsapp: #25D366;
         }
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -106,27 +116,37 @@
         .contact-info b { display: block; color: #2d3436; font-size: 18px; }
         .contact-info span { font-family: monospace; color: #636e72; font-size: 15px; }
 
-        .actions { display: flex; gap: 8px; }
+        .actions { display: flex; gap: 5px; }
         .btn-sm {
-            padding: 8px 12px;
+            padding: 8px 10px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             text-decoration: none;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .btn-copy { background: #dfe6e9; color: #2d3436; }
         .btn-call { background: #2ecc71; color: white; }
+        .btn-wa { background: var(--whatsapp); color: white; }
 
-        .empty-msg { color: #b2bec3; padding: 20px; }
+        .footer-note {
+            margin-top: 20px;
+            font-size: 11px;
+            color: #95a5a6;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .footer-note a { color: var(--accent); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="timeStatus" class="status-badge">جاري التحديث...</div>
-
     <button class="main-trigger" onclick="processRequest()">مين تخدير؟</button>
     
     <div class="input-group">
@@ -142,8 +162,12 @@
             <option value="الجمعة">الجمعة</option>
         </select>
     </div>
-
     <div id="result"></div>
+</div>
+
+<div class="footer-note">
+    This app was made by Dr. Abdow, for any reports or suggestions 
+    <a href="https://wa.me/201550086024" target="_blank">contact me</a>
 </div>
 
 <script>
@@ -177,35 +201,27 @@
         document.getElementById('timeStatus').innerText = status;
     }
     
-    setInterval(updateTimeDisplay, 60000); // Update badge every minute
+    setInterval(updateTimeDisplay, 60000); 
     updateTimeDisplay();
 
-    function copyToClipboard(text) {
+    function copyToClipboard(text, btn) {
         navigator.clipboard.writeText(text);
-        // Temporary feedback on button
-        event.target.innerText = "تم!";
-        setTimeout(() => { event.target.innerText = "نسخ"; }, 1500);
+        const originalText = btn.innerText;
+        btn.innerText = "تم!";
+        setTimeout(() => { btn.innerText = originalText; }, 1500);
     }
 
     function processRequest() {
         const selectedDay = document.getElementById('daySelect').value;
-        const resultDiv = document.getElementById('result');
-        
         const daysArr = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
         const now = new Date();
         let targetDay = selectedDay === "today" ? daysArr[now.getDay()] : selectedDay;
-        
         const hr = now.getHours() + (now.getMinutes()/60);
         const isMorning = hr >= 8 && hr < 13.5;
 
-        let names = [];
-        if (selectedDay !== "today") {
-            // Logic for specific day request (Step 6)
-            names = [...(emergencyMornings[targetDay] || []), ...(onCallGroups[targetDay] || [])];
-        } else {
-            // Current time logic (Step 3 & 4)
-            names = isMorning ? (emergencyMornings[targetDay] || []) : (onCallGroups[targetDay] || []);
-        }
+        let names = (selectedDay !== "today") 
+            ? [...(emergencyMornings[targetDay] || []), ...(onCallGroups[targetDay] || [])]
+            : (isMorning ? (emergencyMornings[targetDay] || []) : (onCallGroups[targetDay] || []));
 
         renderList(names);
     }
@@ -216,9 +232,7 @@
             resultDiv.innerHTML = `<div class="empty-msg">لا يوجد جدول مسجل لهذا الوقت</div>`;
         } else {
             let html = "";
-            // Remove duplicates if any (e.g. if a name is in both tables for Step 6)
-            const uniqueNames = [...new Set(names)];
-            uniqueNames.forEach(n => {
+            [...new Set(names)].forEach(n => {
                 const phone = directory[n] || "";
                 html += `
                     <div class="contact-card">
@@ -227,7 +241,8 @@
                             <span>${phone}</span>
                         </div>
                         <div class="actions">
-                            <button class="btn-sm btn-copy" onclick="copyToClipboard('${phone}')">نسخ</button>
+                            <button class="btn-sm btn-copy" onclick="copyToClipboard('${phone}', this)">نسخ</button>
+                            ${phone ? `<a href="https://wa.me/2${phone}" target="_blank" class="btn-sm btn-wa">واتساب</a>` : ''}
                             ${phone ? `<a href="tel:${phone}" class="btn-sm btn-call">اتصال</a>` : ''}
                         </div>
                     </div>`;
@@ -235,7 +250,15 @@
             resultDiv.innerHTML = html;
         }
     }
-</script>
 
+    // Register Service Worker for Offline Use
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(() => {
+                // Fallback for direct blob if sw.js doesn't exist
+            });
+        });
+    }
+</script>
 </body>
 </html>
