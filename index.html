@@ -57,7 +57,7 @@
 </div>
 
 <div class="footer-note">
-    Made by Dr. Abdow • Menta5deer v1.3 <br>
+    Made by Dr. Abdow • Menta5deer v1.3.1 <br>
     <a href="https://wa.me/201550086024" target="_blank">Send Feedback via WhatsApp</a>
 </div>
 
@@ -75,13 +75,8 @@
         "الثلاثاء": ["آية جمال"], "الأربعاء": ["جهاد"], "الخميس": ["عمر الحيت"]
     };
 
-    // Sunday/Wednesday group (Index 0 in cycle)
     const groupSunWed = ["محمد هراس", "عمر الحيت", "جهاد", "سلمى", "سارة فايد"];
-    
-    // Monday/Thursday group (Index 1 in cycle)
     const groupMonThu = ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"];
-    
-    // Saturday/Tuesday group (Index 2 in cycle)
     const groupSatTue = ["نهاد", "أحمد الفار", "أحمد عيسى", "روان", "آية جمال"];
 
     const onCallGroups = {
@@ -90,36 +85,22 @@
         "الاثنين": groupMonThu, "الخميس": groupMonThu
     };
 
-    const rotationCycle = ["الأحد", "الاثنين", "السبت"]; // 0=SunWed, 1=MonThu, 2=SatTue
+    const rotationCycle = ["الأحد", "الاثنين", "السبت"];
 
     function getFridayGroup(date) {
-        // Reference Date: Jan 30, 2026 is Friday.
-        // On this specific date, the rotation is Group 0 (Sun/Wed - Hrass/Omar/etc).
-        // We set reference to Jan 30, 2026.
         const refDate = new Date(2026, 0, 30); 
-        
-        // Calculate difference in weeks
         const diffTime = date.getTime() - refDate.getTime();
         const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
-        
         let index = diffWeeks % 3;
         if (index < 0) index += 3;
-        
         return onCallGroups[rotationCycle[index]];
     }
 
     function updateTimeDisplay() {
         const now = new Date();
         const hr = now.getHours();
-        let status = "";
-        
-        if (hr < 8) {
-            status = "🌑 نبطشية (مستمرة من أمس)";
-        } else if (hr >= 8 && hr < 13.5 && now.getDay() !== 5) {
-            status = "☀️ فترة العمل الصباحية";
-        } else {
-            status = "🌑 فترة النبطشية";
-        }
+        let status = (hr < 8) ? "🌑 نبطشية (مستمرة من أمس)" : 
+                     (hr >= 8 && hr < 13.5 && now.getDay() !== 5) ? "☀️ فترة العمل الصباحية" : "🌑 فترة النبطشية";
         document.getElementById('timeStatus').innerText = status;
     }
     setInterval(updateTimeDisplay, 60000); 
@@ -137,44 +118,44 @@
         const now = new Date();
         const hr = now.getHours();
 
-        // LOGIC: The "Effective Day"
-        // If it is before 8:00 AM, the shift belongs to Yesterday.
-        // If it is 8:00 AM or later, the shift belongs to Today.
         let effectiveDate = new Date(now);
-        if (hr < 8) {
-            effectiveDate.setDate(now.getDate() - 1);
-        }
+        if (hr < 8) effectiveDate.setDate(now.getDate() - 1);
+
+        let finalNames = [];
 
         if (selectedDay === "today") {
             const dayIdx = effectiveDate.getDay();
             const dayName = daysArr[dayIdx];
 
-            // If the effective shift day is Friday (Friday 8am -> Saturday 7:59am)
             if (dayIdx === 5) {
-                renderList(getFridayGroup(effectiveDate));
+                finalNames = getFridayGroup(effectiveDate);
             } else {
-                // For other days, check if we are in the morning slot (8am - 1:30pm)
-                // BUT only if we are actually in the physical morning hours of that day
-                // (i.e., not yesterday's night shift flowing into today)
                 const isMorningSlot = (hr >= 8 && hr < 13.5);
-                
-                renderList(isMorningSlot ? (emergencyMornings[dayName] || []) : (onCallGroups[dayName] || []));
+                finalNames = isMorningSlot ? (emergencyMornings[dayName] || []) : (onCallGroups[dayName] || []);
             }
         } 
         else if (selectedDay === "الجمعة") {
-            // Calculate which Friday is the "Upcoming" or "Active" one
             let targetFri = new Date(effectiveDate);
-            const dist = (5 + 7 - effectiveDate.getDay()) % 7;
-            targetFri.setDate(effectiveDate.getDate() + dist);
-            
-            // If today is effectively Friday, show today. If not, show next Friday.
-            renderList(getFridayGroup(targetFri));
+            targetFri.setDate(effectiveDate.getDate() + (5 + 7 - effectiveDate.getDay()) % 7);
+            finalNames = getFridayGroup(targetFri);
         } 
         else {
             const keyMap = { "السبت": "السبت", "الأحد": "الأحد", "الاثنين": "الاثنين", "الاتنين": "الاثنين", "التلات": "الثلاثاء", "الثلاثاء": "الثلاثاء", "الأربعاء": "الأربعاء", "الأربع": "الأربعاء", "الخميس": "الخميس" };
             const key = keyMap[selectedDay] || selectedDay;
-            renderList([...(emergencyMornings[key] || []), ...(onCallGroups[key] || [])]);
+            finalNames = [...(emergencyMornings[key] || []), ...(onCallGroups[key] || [])];
         }
+
+        // Apply Today's Exception: Remove "محمد هراس" for Today (Friday Jan 30)
+        // Check if effective shift date is Jan 30, 2026
+        const isTodayShift = effectiveDate.getFullYear() === 2026 && 
+                             effectiveDate.getMonth() === 0 && 
+                             effectiveDate.getDate() === 30;
+        
+        if (isTodayShift) {
+            finalNames = finalNames.filter(name => name !== "محمد هراس");
+        }
+
+        renderList(finalNames);
     }
 
     function renderList(names) {
@@ -192,8 +173,7 @@
         resultDiv.innerHTML = html;
     }
 
-    processRequest(); // Run immediately
-
+    processRequest();
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); }
 </script>
 </body>
