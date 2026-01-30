@@ -12,133 +12,26 @@
 
     <title>Menta5deer</title>
     <style>
-        :root {
-            --primary: #c0392b; 
-            --accent: #27ae60;
-            --bg: #f8f9fa;
-            --white: #ffffff;
-            --whatsapp: #25D366;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 15px;
-        }
-
-        .container {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            background: #f1f2f6;
-            color: #57606f;
-            font-weight: bold;
-        }
-
-        .main-trigger {
-            width: 100%;
-            padding: 25px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #962d22;
-            transition: all 0.1s;
-            margin-bottom: 25px;
-        }
-
-        .main-trigger:active {
-            transform: translateY(4px);
-            box-shadow: 0 4px 0 #962d22;
-        }
-
-        .input-group { 
-            margin-bottom: 20px; 
-            text-align: right;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-        }
-        
+        :root { --primary: #c0392b; --accent: #27ae60; --bg: #f8f9fa; --white: #ffffff; --whatsapp: #25D366; }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        .container { background: var(--white); padding: 2rem; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .status-badge { display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; background: #f1f2f6; color: #57606f; font-weight: bold; }
+        .main-trigger { width: 100%; padding: 25px; background-color: var(--primary); color: white; border: none; border-radius: 15px; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 8px 0 #962d22; transition: all 0.1s; margin-bottom: 25px; }
+        .main-trigger:active { transform: translateY(4px); box-shadow: 0 4px 0 #962d22; }
+        .input-group { margin-bottom: 20px; text-align: right; border-top: 1px solid #eee; padding-top: 15px; }
         label { display: block; font-size: 14px; color: #7f8c8d; margin-bottom: 8px; }
-
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            background: #fff;
-            cursor: pointer;
-        }
-
-        #result {
-            margin-top: 10px;
-            text-align: right;
-        }
-
-        .contact-card {
-            background: #fff;
-            border: 1px solid #edf2f7;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            animation: fadeIn 0.3s ease;
-        }
-
+        select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; background: #fff; cursor: pointer; }
+        #result { margin-top: 10px; text-align: right; }
+        .contact-card { background: #fff; border: 1px solid #edf2f7; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         .contact-info b { display: block; color: #2d3436; font-size: 18px; }
         .contact-info span { font-family: monospace; color: #636e72; font-size: 15px; }
-
         .actions { display: flex; gap: 5px; }
-        .btn-sm {
-            padding: 8px 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            text-decoration: none;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .btn-sm { padding: 8px 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; text-decoration: none; font-weight: bold; display: flex; align-items: center; justify-content: center; }
         .btn-copy { background: #dfe6e9; color: #2d3436; }
         .btn-call { background: #2ecc71; color: white; }
         .btn-wa { background: var(--whatsapp); color: white; }
-
-        .footer-note {
-            margin-top: 20px;
-            font-size: 11px;
-            color: #95a5a6;
-            text-align: center;
-            line-height: 1.6;
-        }
+        .footer-note { margin-top: 20px; font-size: 11px; color: #95a5a6; text-align: center; line-height: 1.6; }
         .footer-note a { color: var(--accent); text-decoration: none; font-weight: bold; }
     </style>
 </head>
@@ -147,7 +40,6 @@
 <div class="container">
     <div id="timeStatus" class="status-badge">جاري التحديث...</div>
     <button class="main-trigger" onclick="processRequest()">مين تخدير؟</button>
-    
     <div class="input-group">
         <label>استعلام عن يوم آخر:</label>
         <select id="daySelect" onchange="processRequest()">
@@ -165,7 +57,7 @@
 </div>
 
 <div class="footer-note">
-    Made by Dr. Abdow • Menta5deer v1.0 <br>
+    Made by Dr. Abdow • Menta5deer v1.1 <br>
     <a href="https://wa.me/201550086024" target="_blank">Send Feedback via WhatsApp</a>
 </div>
 
@@ -193,10 +85,9 @@
     };
 
     function getFridayGroup(date) {
-        const refFriday = new Date(2026, 0, 30); 
+        const refFriday = new Date(2026, 0, 30, 8, 0, 0); 
         const cycle = ["الأحد", "الاثنين", "السبت"]; 
-        const diffInMs = date - refFriday;
-        const diffInWeeks = Math.floor(diffInMs / (7 * 24 * 60 * 60 * 1000));
+        const diffInWeeks = Math.floor((date.getTime() - refFriday.getTime()) / (7 * 24 * 60 * 60 * 1000));
         let index = diffInWeeks % 3;
         if (index < 0) index += 3;
         return onCallGroups[cycle[index]];
@@ -205,25 +96,14 @@
     function updateTimeDisplay() {
         const now = new Date();
         const hr = now.getHours();
-        const day = now.getDay(); 
-        let status = "";
-        if (day === 6 && hr < 8) {
-            status = "🌑 نبطشية الجمعة (مستمرة)";
-        } else if (hr >= 8 && hr < 13.5 && day !== 5) {
-            status = "☀️ فترة العمل الصباحية";
-        } else {
-            status = "🌑 فترة النبطشية المسائية";
-        }
-        document.getElementById('timeStatus').innerText = status;
+        document.getElementById('timeStatus').innerText = (hr < 8) ? "🌑 نبطشية (مستمرة من أمس)" : 
+            (hr >= 8 && hr < 13.5 && now.getDay() !== 5) ? "☀️ فترة العمل الصباحية" : "🌑 فترة النبطشية المسائية";
     }
-    
-    setInterval(updateTimeDisplay, 60000); 
-    updateTimeDisplay();
+    setInterval(updateTimeDisplay, 60000); updateTimeDisplay();
 
     function copyToClipboard(text, btn) {
         navigator.clipboard.writeText(text);
-        const originalText = btn.innerText;
-        btn.innerText = "تم!";
+        const originalText = btn.innerText; btn.innerText = "تم!";
         setTimeout(() => { btn.innerText = originalText; }, 1500);
     }
 
@@ -233,62 +113,46 @@
         const now = new Date();
         const hr = now.getHours();
         
-        let targetDayName = selectedDay;
         if (selectedDay === "today") {
-            targetDayName = daysArr[now.getDay()];
-            if (now.getDay() === 6 && hr < 8) {
-                const prevDate = new Date(); prevDate.setDate(now.getDate() - 1);
-                renderList(getFridayGroup(prevDate)); return;
-            }
-            if (now.getDay() === 5) { renderList(getFridayGroup(now)); return; }
-            const isMorning = hr >= 8 && hr < 13.5;
-            renderList(isMorning ? (emergencyMornings[targetDayName] || []) : (onCallGroups[targetDayName] || []));
-            return;
-        }
+            let shiftDate = new Date(now);
+            if (hr < 8) shiftDate.setDate(now.getDate() - 1);
+            
+            const dayIdx = shiftDate.getDay();
+            const dayName = daysArr[dayIdx];
 
-        if (selectedDay === "الجمعة") {
-            let nextFri = new Date();
-            nextFri.setDate(now.getDate() + (5 + 7 - now.getDay()) % 7);
-            if (now.getDay() === 5) nextFri = now; 
-            renderList(getFridayGroup(nextFri));
+            if (dayIdx === 5) {
+                renderList(getFridayGroup(shiftDate));
+            } else {
+                const isMorning = (hr >= 8 && hr < 13.5);
+                renderList(isMorning ? (emergencyMornings[dayName] || []) : (onCallGroups[dayName] || []));
+            }
+        } else if (selectedDay === "الجمعة") {
+            let targetFri = new Date();
+            targetFri.setDate(now.getDate() + (5 + 7 - now.getDay()) % 7);
+            if (now.getDay() === 5 && hr >= 8) targetFri = now;
+            renderList(getFridayGroup(targetFri));
         } else {
-            // Mapping UI names to internal data keys
-            const internalKeyMap = { "السبت": "السبت", "الأحد": "الأحد", "الاثنين": "الاثنين", "الثلاثاء": "الثلاثاء", "الأربعاء": "الأربعاء", "الخميس": "الخميس" };
-            const key = internalKeyMap[selectedDay] || selectedDay;
+            const keyMap = { "السبت": "السبت", "الأحد": "الأحد", "الاثنين": "الاثنين", "الاتنين": "الاثنين", "التلات": "الثلاثاء", "الثلاثاء": "الثلاثاء", "الأربعاء": "الأربعاء", "الأربع": "الأربعاء", "الخميس": "الخميس" };
+            const key = keyMap[selectedDay] || selectedDay;
             renderList([...(emergencyMornings[key] || []), ...(onCallGroups[key] || [])]);
         }
     }
 
     function renderList(names) {
         const resultDiv = document.getElementById('result');
-        if (!names || names.length === 0) {
-            resultDiv.innerHTML = `<div class="empty-msg">لا يوجد جدول مسجل لهذا الوقت</div>`;
-        } else {
-            let html = "";
-            [...new Set(names)].forEach(n => {
-                const phone = directory[n] || "";
-                html += `
-                    <div class="contact-card">
-                        <div class="contact-info">
-                            <b>${n}</b>
-                            <span>${phone}</span>
-                        </div>
-                        <div class="actions">
-                            <button class="btn-sm btn-copy" onclick="copyToClipboard('${phone}', this)">نسخ</button>
-                            ${phone ? `<a href="https://wa.me/2${phone}" target="_blank" class="btn-sm btn-wa">واتساب</a>` : ''}
-                            ${phone ? `<a href="tel:${phone}" class="btn-sm btn-call">اتصال</a>` : ''}
-                        </div>
-                    </div>`;
-            });
-            resultDiv.innerHTML = html;
-        }
-    }
-
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log("SW error", err));
+        if (!names || names.length === 0) { resultDiv.innerHTML = `<div class="empty-msg">لا يوجد جدول مسجل</div>`; return; }
+        let html = "";
+        [...new Set(names)].forEach(n => {
+            const phone = directory[n] || "";
+            html += `<div class="contact-card"><div class="contact-info"><b>${n}</b><span>${phone}</span></div><div class="actions">
+                <button class="btn-sm btn-copy" onclick="copyToClipboard('${phone}', this)">نسخ</button>
+                ${phone ? `<a href="https://wa.me/2${phone}" target="_blank" class="btn-sm btn-wa">واتساب</a>` : ''}
+                ${phone ? `<a href="tel:${phone}" class="btn-sm btn-call">اتصال</a>` : ''}
+            </div></div>`;
         });
+        resultDiv.innerHTML = html;
     }
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); }
 </script>
 </body>
-</html>  
+</html> 
