@@ -57,7 +57,7 @@
 </div>
 
 <div class="footer-note">
-    Made by Dr. Abdow • Menta5deer v1.2 <br>
+    Made by Dr. Abdow • Menta5deer v1.3 <br>
     <a href="https://wa.me/201550086024" target="_blank">Send Feedback via WhatsApp</a>
 </div>
 
@@ -75,38 +75,51 @@
         "الثلاثاء": ["آية جمال"], "الأربعاء": ["جهاد"], "الخميس": ["عمر الحيت"]
     };
 
+    // Sunday/Wednesday group (Index 0 in cycle)
+    const groupSunWed = ["محمد هراس", "عمر الحيت", "جهاد", "سلمى", "سارة فايد"];
+    
+    // Monday/Thursday group (Index 1 in cycle)
+    const groupMonThu = ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"];
+    
+    // Saturday/Tuesday group (Index 2 in cycle)
+    const groupSatTue = ["نهاد", "أحمد الفار", "أحمد عيسى", "روان", "آية جمال"];
+
     const onCallGroups = {
-        "السبت": ["نهاد", "أحمد الفار", "أحمد عيسى", "روان", "آية جمال"],
-        "الثلاثاء": ["نهاد", "أحمد الفار", "أحمد عيسى", "روان", "آية جمال"],
-        "الأحد": ["محمد هراس", "عمر الحيت", "جهاد", "سلمى", "سارة فايد"],
-        "الأربعاء": ["محمد هراس", "عمر الحيت", "جهاد", "سلمى", "سارة فايد"],
-        "الاثنين": ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"],
-        "الخميس": ["حسام", "أحمد طارق", "عبدالغني", "محمود عزت", "محمد فؤاد"]
+        "السبت": groupSatTue, "الثلاثاء": groupSatTue,
+        "الأحد": groupSunWed, "الأربعاء": groupSunWed,
+        "الاثنين": groupMonThu, "الخميس": groupMonThu
     };
 
+    const rotationCycle = ["الأحد", "الاثنين", "السبت"]; // 0=SunWed, 1=MonThu, 2=SatTue
+
     function getFridayGroup(date) {
-        // Reference: Jan 30, 2026 is index 0 (Sun/Wed group)
-        // We set the reference to Jan 30 at 12:00 PM to avoid midnight edge cases
-        const refFriday = new Date(2026, 0, 30, 12, 0, 0); 
-        const cycle = ["الأحد", "الاثنين", "السبت"]; // 0=Sun/Wed, 1=Mon/Thu, 2=Sat/Tue
+        // Reference Date: Jan 30, 2026 is Friday.
+        // On this specific date, the rotation is Group 0 (Sun/Wed - Hrass/Omar/etc).
+        // We set reference to Jan 30, 2026.
+        const refDate = new Date(2026, 0, 30); 
         
-        const diffInMs = date.getTime() - refFriday.getTime();
-        const diffInWeeks = Math.floor(diffInMs / (7 * 24 * 60 * 60 * 1000));
+        // Calculate difference in weeks
+        const diffTime = date.getTime() - refDate.getTime();
+        const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
         
-        let index = diffInWeeks % 3;
+        let index = diffWeeks % 3;
         if (index < 0) index += 3;
         
-        return onCallGroups[cycle[index]];
+        return onCallGroups[rotationCycle[index]];
     }
 
     function updateTimeDisplay() {
         const now = new Date();
         const hr = now.getHours();
-        const isMorning = (hr >= 8 && hr < 13.5 && now.getDay() !== 5);
+        let status = "";
         
-        let status = isMorning ? "☀️ فترة العمل الصباحية" : "🌑 فترة النبطشية المسائية";
-        if (hr < 8) status = "🌑 نبطشية (مستمرة من أمس)";
-        
+        if (hr < 8) {
+            status = "🌑 نبطشية (مستمرة من أمس)";
+        } else if (hr >= 8 && hr < 13.5 && now.getDay() !== 5) {
+            status = "☀️ فترة العمل الصباحية";
+        } else {
+            status = "🌑 فترة النبطشية";
+        }
         document.getElementById('timeStatus').innerText = status;
     }
     setInterval(updateTimeDisplay, 60000); 
@@ -122,44 +135,40 @@
         const selectedDay = document.getElementById('daySelect').value;
         const daysArr = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
         const now = new Date();
-        
-        // --- KEY FIX: SHIFT LOGIC ---
-        // We subtract 8 hours from "Now".
-        // If it's Friday 4 AM, subtracting 8h gives Thursday 8 PM.
-        // If it's Friday 9 AM, subtracting 8h gives Friday 1 AM.
-        // This automatically handles the "Yesterday" logic.
-        const medicalDay = new Date(now.getTime() - 8 * 60 * 60 * 1000);
-        
-        if (selectedDay === "today") {
-            const dayIdx = medicalDay.getDay(); // 0-6
-            const dayName = daysArr[dayIdx]; // e.g., "الخميس"
+        const hr = now.getHours();
 
-            // If the calculated Medical Day is Friday (meaning Real Time is Fri 8am - Sat 8am)
+        // LOGIC: The "Effective Day"
+        // If it is before 8:00 AM, the shift belongs to Yesterday.
+        // If it is 8:00 AM or later, the shift belongs to Today.
+        let effectiveDate = new Date(now);
+        if (hr < 8) {
+            effectiveDate.setDate(now.getDate() - 1);
+        }
+
+        if (selectedDay === "today") {
+            const dayIdx = effectiveDate.getDay();
+            const dayName = daysArr[dayIdx];
+
+            // If the effective shift day is Friday (Friday 8am -> Saturday 7:59am)
             if (dayIdx === 5) {
-                renderList(getFridayGroup(medicalDay));
+                renderList(getFridayGroup(effectiveDate));
             } else {
-                // Check if it's legally "Morning" (Real time 8am - 1:30pm)
-                const hr = now.getHours();
-                const isMorningShift = (hr >= 8 && hr < 13.5);
+                // For other days, check if we are in the morning slot (8am - 1:30pm)
+                // BUT only if we are actually in the physical morning hours of that day
+                // (i.e., not yesterday's night shift flowing into today)
+                const isMorningSlot = (hr >= 8 && hr < 13.5);
                 
-                // If it's Thursday Night (Fri 4am), isMorningShift is false. We show Thursday OnCall.
-                renderList(isMorningShift ? (emergencyMornings[dayName] || []) : (onCallGroups[dayName] || []));
+                renderList(isMorningSlot ? (emergencyMornings[dayName] || []) : (onCallGroups[dayName] || []));
             }
         } 
         else if (selectedDay === "الجمعة") {
-            let nextFri = new Date();
-            // Calculate next Friday based on calendar
-            nextFri.setDate(now.getDate() + (5 + 7 - now.getDay()) % 7);
+            // Calculate which Friday is the "Upcoming" or "Active" one
+            let targetFri = new Date(effectiveDate);
+            const dist = (5 + 7 - effectiveDate.getDay()) % 7;
+            targetFri.setDate(effectiveDate.getDate() + dist);
             
-            // If today is Friday but < 8am, "nextFri" is today. 
-            // But we want the "Future/Active" Friday shift.
-            // If < 8am, the "active" shift is Thursday. So "Friday" implies the one starting later today.
-            // If >= 8am, "Active" is today.
-            // This logic ensures if you click Friday at 4am, you see Today's upcoming shift.
-            if (now.getDay() === 5 && now.getHours() < 8) {
-                // Keep nextFri as today (upcoming 8am shift)
-            } 
-            renderList(getFridayGroup(nextFri));
+            // If today is effectively Friday, show today. If not, show next Friday.
+            renderList(getFridayGroup(targetFri));
         } 
         else {
             const keyMap = { "السبت": "السبت", "الأحد": "الأحد", "الاثنين": "الاثنين", "الاتنين": "الاثنين", "التلات": "الثلاثاء", "الثلاثاء": "الثلاثاء", "الأربعاء": "الأربعاء", "الأربع": "الأربعاء", "الخميس": "الخميس" };
@@ -183,8 +192,7 @@
         resultDiv.innerHTML = html;
     }
 
-    // Auto-run on load so the user sees data immediately
-    processRequest();
+    processRequest(); // Run immediately
 
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); }
 </script>
