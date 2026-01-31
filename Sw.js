@@ -1,3 +1,4 @@
+// Version1.1 update
 const CACHE_NAME = 'anaesthesia-v2';
 const assets = [
     './', 
