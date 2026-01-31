@@ -57,7 +57,7 @@
 </div>
 
 <div class="footer-note">
-    Made by Dr. Abdow • Menta5deer v1.3.1 <br>
+    Made by Dr. Abdow • Menta5deer v1.3.3 <br>
     <a href="https://wa.me/201550086024" target="_blank">Send Feedback via WhatsApp</a>
 </div>
 
@@ -96,14 +96,27 @@
         return onCallGroups[rotationCycle[index]];
     }
 
+    // Fixed Time Function: Calculates precise decimal time
+    function getPreciseHour() {
+        const d = new Date();
+        return d.getHours() + (d.getMinutes() / 60);
+    }
+
     function updateTimeDisplay() {
         const now = new Date();
-        const hr = now.getHours();
-        let status = (hr < 8) ? "🌑 نبطشية (مستمرة من أمس)" : 
-                     (hr >= 8 && hr < 13.30 && now.getDay() !== 5) ? "☀️ فترة العمل الصباحية" : "🌑 فترة النبطشية";
+        const hr = getPreciseHour();
+        let status = "";
+        
+        if (hr < 8) {
+            status = "🌑 نبطشية (مستمرة من أمس)";
+        } else if (hr >= 8 && hr < 13.5 && now.getDay() !== 5) {
+            status = "☀️ فترة العمل الصباحية";
+        } else {
+            status = "🌑 فترة النبطشية";
+        }
         document.getElementById('timeStatus').innerText = status;
     }
-    setInterval(updateTimeDisplay, 60000); 
+    setInterval(updateTimeDisplay, 30000); // Check every 30 seconds
     updateTimeDisplay();
 
     function copyToClipboard(text, btn) {
@@ -116,7 +129,7 @@
         const selectedDay = document.getElementById('daySelect').value;
         const daysArr = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
         const now = new Date();
-        const hr = now.getHours();
+        const hr = getPreciseHour();
 
         let effectiveDate = new Date(now);
         if (hr < 8) effectiveDate.setDate(now.getDate() - 1);
@@ -130,6 +143,7 @@
             if (dayIdx === 5) {
                 finalNames = getFridayGroup(effectiveDate);
             } else {
+                // If precise hour is 13.5 or more, it's On-Call time.
                 const isMorningSlot = (hr >= 8 && hr < 13.5);
                 finalNames = isMorningSlot ? (emergencyMornings[dayName] || []) : (onCallGroups[dayName] || []);
             }
@@ -145,8 +159,7 @@
             finalNames = [...(emergencyMornings[key] || []), ...(onCallGroups[key] || [])];
         }
 
-        // Apply Today's Exception: Remove "محمد هراس" for Today (Friday Jan 30)
-        // Check if effective shift date is Jan 30, 2026
+        // Keep the exception for Jan 30
         const isTodayShift = effectiveDate.getFullYear() === 2026 && 
                              effectiveDate.getMonth() === 0 && 
                              effectiveDate.getDate() === 30;
