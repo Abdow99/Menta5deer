@@ -57,7 +57,7 @@
 </div>
 
 <div class="footer-note">
-    Made by Dr. Abdow • Menta5deer v1.3.3 <br>
+    Made by Dr. Abdow • Menta5deer v1.3.4 <br>
     <a href="https://wa.me/201550086024" target="_blank">Send Feedback via WhatsApp</a>
 </div>
 
@@ -174,8 +174,18 @@
     function renderList(names) {
         const resultDiv = document.getElementById('result');
         if (!names || names.length === 0) { resultDiv.innerHTML = `<div class="empty-msg">لا يوجد جدول مسجل</div>`; return; }
+        
+        // Remove duplicates
+        let uniqueNames = [...new Set(names)];
+        
+        // Shuffle the array randomly to distribute calls evenly
+        for (let i = uniqueNames.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [uniqueNames[i], uniqueNames[j]] = [uniqueNames[j], uniqueNames[i]];
+        }
+
         let html = "";
-        [...new Set(names)].forEach(n => {
+        uniqueNames.forEach(n => {
             const phone = directory[n] || "";
             html += `<div class="contact-card"><div class="contact-info"><b>${n}</b><span>${phone}</span></div><div class="actions">
                 <button class="btn-sm btn-copy" onclick="copyToClipboard('${phone}', this)">نسخ</button>
