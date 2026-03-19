@@ -57,7 +57,7 @@
 </div>
 
 <div class="footer-note">
-    Made by Dr. Abdow • Menta5deer v1.3.4 <br>
+    Made by Dr. Abdow • Menta5deer v1.3.5 <br>
     <a href="https://wa.me/201550086024" target="_blank">Send Feedback via WhatsApp</a>
 </div>
 
@@ -107,9 +107,14 @@
         const hr = getPreciseHour();
         let status = "";
         
+        // Full-day exception check for Mar 21, 22, 23 (2026)
+        const isFullDayException = now.getFullYear() === 2026 && 
+                                   now.getMonth() === 2 && 
+                                   (now.getDate() >= 21 && now.getDate() <= 23);
+
         if (hr < 8) {
             status = "🌑 نبطشية (مستمرة من أمس)";
-        } else if (hr >= 8 && hr < 13.5 && now.getDay() !== 5) {
+        } else if (hr >= 8 && hr < 13.5 && now.getDay() !== 5 && !isFullDayException) {
             status = "☀️ فترة العمل الصباحية";
         } else {
             status = "🌑 فترة النبطشية";
@@ -135,37 +140,70 @@
         if (hr < 8) effectiveDate.setDate(now.getDate() - 1);
 
         let finalNames = [];
+        let activeDateForExceptions = null;
 
         if (selectedDay === "today") {
             const dayIdx = effectiveDate.getDay();
             const dayName = daysArr[dayIdx];
+            activeDateForExceptions = new Date(effectiveDate);
+
+            // Full-day exception check for Mar 21, 22, 23 (2026)
+            const isFullDayException = effectiveDate.getFullYear() === 2026 && 
+                                       effectiveDate.getMonth() === 2 && 
+                                       (effectiveDate.getDate() >= 21 && effectiveDate.getDate() <= 23);
 
             if (dayIdx === 5) {
                 finalNames = getFridayGroup(effectiveDate);
             } else {
-                // If precise hour is 13.5 or more, it's On-Call time.
-                const isMorningSlot = (hr >= 8 && hr < 13.5);
+                // If precise hour is 13.5 or more, or if it's a full-day exception date, it's On-Call time.
+                const isMorningSlot = (hr >= 8 && hr < 13.5) && !isFullDayException;
                 finalNames = isMorningSlot ? (emergencyMornings[dayName] || []) : (onCallGroups[dayName] || []);
             }
         } 
         else if (selectedDay === "الجمعة") {
             let targetFri = new Date(effectiveDate);
             targetFri.setDate(effectiveDate.getDate() + (5 + 7 - effectiveDate.getDay()) % 7);
+            activeDateForExceptions = new Date(targetFri);
             finalNames = getFridayGroup(targetFri);
         } 
         else {
             const keyMap = { "السبت": "السبت", "الأحد": "الأحد", "الاثنين": "الاثنين", "الاتنين": "الاثنين", "التلات": "الثلاثاء", "الثلاثاء": "الثلاثاء", "الأربعاء": "الأربعاء", "الأربع": "الأربعاء", "الخميس": "الخميس" };
             const key = keyMap[selectedDay] || selectedDay;
             finalNames = [...(emergencyMornings[key] || []), ...(onCallGroups[key] || [])];
+            
+            // Calculate exact target date if checking from dropdown
+            let targetDayIdx = daysArr.indexOf(keyMap[key] || key);
+            if (targetDayIdx !== -1) {
+                let targetDate = new Date(effectiveDate);
+                let diff = (targetDayIdx + 7 - effectiveDate.getDay()) % 7;
+                targetDate.setDate(effectiveDate.getDate() + diff);
+                activeDateForExceptions = targetDate;
+            }
         }
 
-        // Keep the exception for Jan 30
-        const isTodayShift = effectiveDate.getFullYear() === 2026 && 
-                             effectiveDate.getMonth() === 0 && 
-                             effectiveDate.getDate() === 30;
-        
-        if (isTodayShift) {
+        // --- EXCEPTION RULES ---
+
+        // 1. Keep the old exception for Jan 30
+        const isJan30Shift = effectiveDate.getFullYear() === 2026 && effectiveDate.getMonth() === 0 && effectiveDate.getDate() === 30;
+        if (isJan30Shift && selectedDay === "today") {
             finalNames = finalNames.filter(name => name !== "محمد هراس");
+        }
+
+        // 2. Apply New March Exceptions precisely based on the date being checked
+        if (activeDateForExceptions) {
+            const y = activeDateForExceptions.getFullYear();
+            const m = activeDateForExceptions.getMonth(); // 2 = March
+            const d = activeDateForExceptions.getDate();
+
+            if (y === 2026 && m === 2) {
+                if (d === 19) {
+                    finalNames = finalNames.filter(name => !["أحمد طارق", "عبدالغني", "محمود عزت"].includes(name));
+                } else if (d === 20) {
+                    finalNames = finalNames.filter(name => !["عبدالغني", "حسام", "محمد فؤاد"].includes(name));
+                } else if (d === 23) {
+                    finalNames = finalNames.filter(name => name !== "عبدالغني");
+                }
+            }
         }
 
         renderList(finalNames);
